@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block body %}
+{% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
+<div class="row">
+    <div class="span8">
+      <h2>Register</h2>
+      {% from "_formhelpers.html" import render_field %}
+      <form class="form-horizontal" method="POST">
+        <fieldset>
+          <legend>Create a <em>free</em> account</legend>
+
+          {{ render_field(form.email) }}
+          {{ render_field(form.password) }}
+          {{ render_field(form.terms, 'Yes, I agree with the <a href="/terms">terms and conditions</a>.')}}
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Create account</button>
+          </div>
+        </fieldset>
+      </form>
+    </div>
+    <div class="span4">
+      <h3>No spam</h3>
+      <p>We won't spam you. We won't jam you. We won't sell your email.</p>
+      <hr>
+      <h3>What to do next?</h3>
+      <p>Once you have registed..</p>
+    </div>
+{% endblock %}

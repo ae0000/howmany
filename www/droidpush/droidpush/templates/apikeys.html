@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block body %}
+<div class="row">
+	<div class="page-header">
+		<h1>Apikeys <small>Use your apikeys to trigger alerts</small></h1>
+	</div>	
+    <div class="span8">
+      <h3>Your current apikeys</h3>
+      <table class="table table-bordered table-striped">
+      		<thead>
+      			<tr>
+      				<th>Name</th>
+      				<th>Key</th>
+              <th>Accessed <a class="topop" href="#" rel="popover" data-content="This is how many times this apikey has been used by other services." data-original-title="Accessed count">?</a></th>
+      				<th>Actions</th>
+      			</tr>
+      		</thead>
+      		<tbody>
+      			{% for key in apikeys %}
+      			<tr>
+      				<td>{{ key.name }}</td>
+      				<td><strong>{{ key.key }}</strong></td>
+              <td>{{ key.accessed }}</td>
+      				<td><a class="btn btn-small" href="/apikeys/edit/{{key._id}}"><i class="icon-edit"></i> Edit</a> <a class="btn btn-small btn-danger" href="/apikeys/delete/{{key._id}}"><i class="icon-trash icon-white"></i> Delete</a></td>
+      			</tr>
+      			{% endfor %}
+      		</tbody>
+      </table>
+    </div>
+    <div class="span4">
+    	<h3>Need another apikey?</h3>
+    	<p><a class="btn btn-small btn-primary" href="/apikeys/create"><i class="icon-plus icon-white"></i> Create new apikey</a></p>
+    	<hr/>
+    	<h3>What do you do with an Apikey?</h3>
+    	<p>You can use one of your apikeys to plugin to <a href="/services">other services</a> that will then send you alerts.</p>
+    </div>
+</div>
+<div class="modal hide">
+  <div class="modal-header">
+    <a class="close" data-dismiss="modal">×</a>
+    <h3>Are you sure you want to delete this apikey?</h3>
+  </div>
+  <div class="modal-body">
+    <p>Once you delete the key, any services that use it will no longer work.</p>
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn btn-primary">Yes, delete it</a>
+    <a href="#" class="btn">Cancel</a>
+  </div>
+</div>
+{% endblock %}
