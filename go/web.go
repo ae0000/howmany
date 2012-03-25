@@ -10,7 +10,6 @@ import (
 	"time"
 	"crypto/md5"
 	"strings"
-	//"strconv"
 	"sync"
 	"launchpad.net/mgo"
 	"launchpad.net/mgo/bson"
@@ -49,6 +48,8 @@ func load() {
     defaultImage = loadPNG(defaultImageFile)
 }
 
+// we are looking for:
+// hitme/e.png?a=THEHASHKEY
 func hitme(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		if defaultImage != nil {
@@ -60,22 +61,28 @@ func hitme(w http.ResponseWriter, r *http.Request) {
 	// Load the defaultImage into memory (one time)
 	loadOnce.Do(load)
 
-	// TODO get the key out of the query string
-	key := "HAD7LPACVVA4VAAARVX756UKKLCZVF9F"
+	// Get the querystring and check for 'a'
+	q := r.URL.Query()
 
-	// Get the users unique details
-	ip := r.RemoteAddr // 127.0.0.1:1234
-	ipno := strings.Split(ip, ":")[0] // 127.0.0.1
-	userString := r.UserAgent() + "_IP_" + ipno
+	if q["a"] != nil {
+		key := strings.Join(q["a"], "")
 
-	// Create a md5 hash of the users details
-	h := md5.New()
-	io.WriteString(h, userString)
-	md5String := fmt.Sprintf("%x", h.Sum(nil))
+		// Get the users unique details
+		ip := r.RemoteAddr // 127.0.0.1:1234
+		ipno := strings.Split(ip, ":")[0] // 127.0.0.1
+		userString := r.UserAgent() + "_IP_" + ipno
 
-	fmt.Println("Running goroutine... ")
-	// Insert the hit in a separate goroutine (we won't wait for this to finish) 
-	go insertHit(key, md5String, userString)
+		// Create a md5 hash of the users details
+		h := md5.New()
+		io.WriteString(h, userString)
+		md5String := fmt.Sprintf("%x", h.Sum(nil))
+
+		fmt.Println("Running goroutine... ")
+
+		// Insert the hit in a separate goroutine (we won't wait for this to 
+		// finish) 
+		go insertHit(key, md5String, userString)
+	}
 
 	// Send back the default image (remember this is a GET for a image)
 	if defaultImage != nil {
@@ -88,7 +95,8 @@ func insertHit(key, md5String, userString string) {
 	// Connect to mongo
 	session, err := mgo.Dial("127.0.0.1")
 	if err != nil {
-		panic(err)
+		return
+		//panic(err)
 	}
 	defer session.Close()
 
@@ -99,7 +107,7 @@ func insertHit(key, md5String, userString string) {
 	err = ca.Find(bson.M{"key": key}).One(&result)
 	if err != nil {
 		// This means the key is not valid!!
-		panic(err)
+		return
 	}
 
 	// TODO Before we insert the hit we need to do either
@@ -113,12 +121,13 @@ func insertHit(key, md5String, userString string) {
 	ch := session.DB("droidpush").C("hits")
 	count, err := ch.Find(bson.M{"minute": thisMinute, "md5": md5String}).Count()
 	if err != nil {
-		panic(err)
+		return
+		//panic(err)
 	}
 
 	if count >= 1 {
 		// This user has already 'hit' this minute
-		fmt.Println("HIT EXISTS... relax")
+		fmt.Println("HIT EXISTS... do nothing")
 	}else{
 		// We have a valid user who hasn't 'hit' this minute, so lets insert
 		// the entry into 'hits'
@@ -127,7 +136,8 @@ func insertHit(key, md5String, userString string) {
 		fmt.Println("Inserting hit... ")
 
 		if err != nil {
-			panic(err)
+			return
+			//panic(err)
 		}
 	}
 } 
@@ -172,6 +182,6 @@ func loadPNG(filename string) image.Image {
 
 func main() {
 	fmt.Println("Main... ")
-	http.HandleFunc("/hitme", hitme)
+	http.HandleFunc("/", hitme)
 	http.ListenAndServe(":8080", nil)
 }
