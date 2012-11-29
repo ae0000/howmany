@@ -1,16 +1,3 @@
-Droidpush
+Howmany
 
-By Andrew Edwards
-
-Requirements
-------------
-Flask, MongoDB... other things....
-
-
-How to start it up
-------------------
-cd www/droidpush/
-python runserver.py
-
-open browser to http://127.0.0.1:5000/
-
+An experiment in go
